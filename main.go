@@ -1,6 +1,5 @@
 /*
-Copyright © 2024 NAME HERE <EMAIL ADDRESS>
-
+Copyright © 2024 Antonio Pizarro adpg0222@gmail.com
 */
 package main
 
