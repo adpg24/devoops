@@ -25,20 +25,23 @@ to quickly create a Cobra application.`,
 }
 
 func runConfig(cmd *cobra.Command, args []string) {
-	kube := kube.KubeConfig{}
-	contexts := kube.GetContexts()
+	kubeConfig := kube.NewKubeConfig("")
+	contexts := kubeConfig.GetContexts()
 
 	var qs = []*survey.Question{
 		{
 			Name: "context",
 			Prompt: &survey.Select{
+				Default: kubeConfig.GetCurrentContext(),
 				Message: "Choose a context:",
 				Options: contexts,
 			},
 		},
 	}
 
-	answers := struct{ context string }{}
+	answers := struct {
+		Context string `survey:"Context"`
+	}{}
 	err := survey.Ask(qs, &answers)
 	if err != nil {
 		if err.Error() == "interrupt" {
@@ -47,6 +50,8 @@ func runConfig(cmd *cobra.Command, args []string) {
 			log.Fatal(err.Error())
 		}
 	}
+	log.Printf("The selected context is %s", answers.Context)
+	kubeConfig.SetCurrentContext(answers.Context)
 
 }
 

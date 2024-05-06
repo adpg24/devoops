@@ -1,5 +1,5 @@
 /*
-Copyright © 2024 NAME HERE <EMAIL ADDRESS>
+Copyright © 2024 Antonio Pizarro adpg0222@gmail.com
 */
 package cmd
 
@@ -106,12 +106,18 @@ func login(cmd *cobra.Command, args []string) {
 	if longTermCreds, err := credFile.GetSection(longTermProfile); err != nil {
 		log.Fatalf("❌ AWS Profile not available! Please suffix the profile you want to use with \"-mfa\". e.g. [default] -> [default-mfa]\n")
 	} else {
-		if _, err := longTermCreds.GetKey(keyAwsAccessKey); err != nil {
-			log.Fatalf("❌ %s\n", err.Error())
+		requiredKeys := []string{keyAwsAccessKey, keyAwsSecretAccessKey}
+		for _, key := range requiredKeys {
+			if !longTermCreds.HasKey(key) {
+				log.Fatalf("❌ %s\n", err.Error())
+			}
 		}
-		if _, err := longTermCreds.GetKey(keyAwsSecretAccessKey); err != nil {
-			log.Fatalf("❌ %s\n", err.Error())
-		}
+		//if _, err := longTermCreds.GetKey(keyAwsAccessKey); err != nil {
+		//	log.Fatalf("❌ %s\n", err.Error())
+		//}
+		//if _, err := longTermCreds.GetKey(keyAwsSecretAccessKey); err != nil {
+		//	log.Fatalf("❌ %s\n", err.Error())
+		//}
 
 		if configRegion, err := longTermCreds.GetKey("region"); err == nil {
 			region = configRegion.String()
