@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"slices"
 
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
@@ -45,6 +46,7 @@ func (kc *KubeConfig) GetContexts() []string {
 		contexts = append(contexts, k)
 	}
 
+	slices.Sort(contexts)
 	return contexts
 }
 
@@ -52,7 +54,6 @@ func (kc *KubeConfig) GetCurrentContext() string {
 	if kc.Config.CurrentContext == "" {
 		log.Fatalf("CurrentConfig is not configured on config")
 	}
-
 	return kc.Config.CurrentContext
 }
 
