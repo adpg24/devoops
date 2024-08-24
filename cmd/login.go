@@ -40,7 +40,7 @@ var (
 	awsProfile       string
 	longTermProfile  string
 	shortTermProfile string
-	region           string = "eu-west-1"
+	region           = "eu-west-1"
 	mfaDevice        string
 	longTermCreds    awsConfig
 	shortTermCreds   awsConfig
@@ -54,10 +54,11 @@ const (
 
 // loginCmd represents the login command
 var loginCmd = &cobra.Command{
-	Use:    "login",
-	Short:  "Generate short time credentials with MFA authentication",
-	Run:    login,
-	PreRun: checkFlags,
+	Use:     "login",
+	Aliases: []string{"log", "l"},
+	Short:   "Generate short time credentials with MFA authentication",
+	Run:     login,
+	PreRun:  checkFlags,
 }
 
 func getAwsConfig(file *ini.File, sectionName string) awsConfig {
