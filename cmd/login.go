@@ -42,8 +42,6 @@ var (
 	shortTermProfile string
 	region           = "eu-west-1"
 	mfaDevice        string
-	longTermCreds    awsConfig
-	shortTermCreds   awsConfig
 )
 
 const (
@@ -59,20 +57,6 @@ var loginCmd = &cobra.Command{
 	Short:   "Generate short time credentials with MFA authentication",
 	Run:     login,
 	PreRun:  checkFlags,
-}
-
-func getAwsConfig(file *ini.File, sectionName string) awsConfig {
-	section := file.Section(sectionName)
-	awsConfig := awsConfig{
-		AwsAccessKey:       section.Key("aws_access_key_id").String(),
-		AwsSecretAccessKey: section.Key("aws_secret_access_key").String(),
-		Region:             section.Key("region").String(),
-		AwsSessionToken:    section.Key("aws_session_token").String(),
-		MfaDevice:          section.Key("aws_mfa_device").String(),
-		Expiration:         section.Key("expiration").String(),
-	}
-
-	return awsConfig
 }
 
 func insert[T any](array []T, element T, i int) []T {
@@ -97,12 +81,6 @@ func login(cmd *cobra.Command, args []string) {
 	shortTermProfile = awsProfile
 	longTermProfile = fmt.Sprintf("%s%s", awsProfile, longTermSuffix)
 
-	// credsA := getAwsConfig(credFile, longTermProfile)
-	// log.Printf("awsConfig struct longTermProfile: %s", credsA)
-
-	// credsB := getAwsConfig(credFile, shortTermProfile)
-	// log.Printf("awsConfig struct shortTermProfile: %s", credsB)
-
 	// validate long term profile = [profile]-mfa
 	if longTermCreds, err := credFile.GetSection(longTermProfile); err != nil {
 		log.Fatalf("❌ AWS Profile not available! Please suffix the profile you want to use with \"-mfa\". e.g. [default] -> [default-mfa]\n")
@@ -113,12 +91,6 @@ func login(cmd *cobra.Command, args []string) {
 				log.Fatalf("❌ %s\n", err.Error())
 			}
 		}
-		//if _, err := longTermCreds.GetKey(keyAwsAccessKey); err != nil {
-		//	log.Fatalf("❌ %s\n", err.Error())
-		//}
-		//if _, err := longTermCreds.GetKey(keyAwsSecretAccessKey); err != nil {
-		//	log.Fatalf("❌ %s\n", err.Error())
-		//}
 
 		if configRegion, err := longTermCreds.GetKey("region"); err == nil {
 			region = configRegion.String()
