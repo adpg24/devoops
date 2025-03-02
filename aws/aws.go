@@ -10,7 +10,7 @@ import (
 
 var activeProfile = "defaul"
 
-type EcsTool struct {
+type EcsService struct {
 	client  *ecs.ECS
 	profile string
 	output  string
@@ -22,20 +22,36 @@ func getActiveProfile() string {
 	return activeProfile
 }
 
-func (config *EcsTool) init() {
+func (config *EcsService) init() {
 	mySession := session.Must(session.NewSession())
 	config.client = ecs.New(mySession)
 }
 
-func (tool *EcsTool) listCluster() []*string {
+func (tool *EcsService) listClusters() []*string {
 	maxRes := int64(5)
 	input := ecs.ListClustersInput{MaxResults: &maxRes}
 	response, err := tool.client.ListClusters(&input)
 	if err != nil {
 		log.Fatalf("Failed to retrieve clusters")
 	}
-	clusterArns := response.ClusterArns
-	return clusterArns
+	return response.ClusterArns
 }
 
-//Hello from this fihhjjjje
+func (tool *EcsService) listServices(cluster string) []*string {
+	input := ecs.ListServicesInput{Cluster: &cluster}
+	response, err := tool.client.ListServices(&input)
+	if err != nil {
+		log.Fatalf("Failed to retrieve clusters")
+	}
+	return response.ServiceArns
+}
+
+func (tool *EcsService) describeService(cluster string, service string) *ecs.Service {
+	services := []*string{&service}
+	input := ecs.DescribeServicesInput{Cluster: &cluster, Services: services}
+	response, err := tool.client.DescribeServices(&input)
+	if err != nil {
+		log.Fatalf("Failed to retrieve clusters")
+	}
+	return response.Services[0]
+}
