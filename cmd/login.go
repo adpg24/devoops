@@ -202,7 +202,7 @@ func SetVersionInfo(version, commit, date string) {
 func init() {
 	rootCmd.AddCommand(loginCmd)
 
-	// log.SetPrefix("aws-k8s\t")
+	// log.SetPrefix("devoops\t")
 	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
 
 	home, err := os.UserHomeDir()

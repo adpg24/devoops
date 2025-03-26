@@ -5,7 +5,7 @@ package cmd
 
 import (
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/adpg0222/aws-k8s/kube"
+	"github.com/adpg0222/devoops/kube"
 	"log"
 
 	"github.com/spf13/cobra"
