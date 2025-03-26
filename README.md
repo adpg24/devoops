@@ -1,4 +1,4 @@
-# aws-k8s
+# devoops
 CLI tool to facilitate EKS local development written in GOLANG
 
 # Install from git repo

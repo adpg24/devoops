@@ -1,4 +1,4 @@
-module github.com/adpg0222/aws-k8s
+module github.com/adpg0222/devoops
 
 go 1.22.2
 
