@@ -7,7 +7,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/adpg0222/aws-k8s/aws"
+	"github.com/adpg0222/devoops/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ecr"
 	"github.com/spf13/cobra"
 )
