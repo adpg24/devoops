@@ -33,3 +33,8 @@ ku cc
 ku switch-context
 ku sc
 ```
+
+### Cobra CLI
+```bash
+cobra-cli -h
+```
