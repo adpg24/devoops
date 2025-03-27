@@ -120,19 +120,16 @@ func setUpEnvConfig(profile string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	count, err := file.WriteString(fmt.Sprintf("export AWS_PROFILE=%s", profile))
+	_, err = file.WriteString(fmt.Sprintf("export AWS_PROFILE=%s", profile))
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Printf("Wrote %d bytes", count)
 
 	cmd := exec.Command("bash", "-c", "source "+configFile+"; env | grep -i aws")
-	fmt.Printf("$%v", cmd.Args)
-	stdout, err := cmd.Output()
+	_, err = cmd.Output()
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println(string(stdout))
 }
 
 func init() {
