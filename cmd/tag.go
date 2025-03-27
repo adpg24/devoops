@@ -15,17 +15,13 @@ import (
 // tagCmd represents the tag command
 var tagCmd = &cobra.Command{
 	Use:   "tag",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: retag,
+	Short: "Retag an AWS ECR image",
+	Long: `Retag an AWS ECR image - No downloads necessary!
+	devoops tag IMAGE_REPOSITORY_NAME:TAG -> IMAGE_REPOSITORY_NAME:NEW_TAG`,
+	Run: run,
 }
 
-func retag(cmd *cobra.Command, args []string) {
+func run(cmd *cobra.Command, args []string) {
 	if len(args) < 2 {
 		log.Fatalln("Please provide 2 arguments: source and target; repository must be the same")
 	}
@@ -54,14 +50,4 @@ func retag(cmd *cobra.Command, args []string) {
 
 func init() {
 	rootCmd.AddCommand(tagCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// tagCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// tagCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
