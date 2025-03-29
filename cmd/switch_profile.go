@@ -11,12 +11,11 @@ import (
 	"slices"
 	"sort"
 	"strings"
-	"time"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/adpg24/devoops/util"
 	"github.com/go-ini/ini"
 	"github.com/spf13/cobra"
-	"golang.design/x/clipboard"
 )
 
 const awsCredentialsFile string = ".aws/credentials"
@@ -72,9 +71,9 @@ func selectProfile(cmd *cobra.Command, args []string) {
 	}
 	selectedProfile := strings.Split(answers.Profile, "/")[1]
 	exportCmd := fmt.Sprintf("export AWS_PROFILE=%s", selectedProfile)
-	err = copyToClipboard(exportCmd)
+	err = util.CopyToClipboard(exportCmd)
 	if err != nil {
-		log.Println("Somethin went wrong while copying to clipboard", err)
+		log.Fatalln("Somethin went wrong while copying to clipboard:", err)
 	}
 	log.Println("Export command written to clipboard")
 }
@@ -111,27 +110,6 @@ func retrieveProfiles() []AwsProfile {
 		profiles = append(profiles, AwsProfile{Name: section.Name(), Account: accountId})
 	}
 	return profiles
-}
-
-func copyToClipboard(content string) error {
-	err := clipboard.Init()
-	if err != nil {
-		return err
-	}
-
-	c := make(chan int)
-	go func(c chan int) {
-		time.Sleep(100 * time.Millisecond)
-		close(c)
-	}(c)
-
-	select {
-	case <-clipboard.Write(clipboard.FmtText, []byte(content)):
-		return fmt.Errorf("Clipboard was overwritten, value is lost")
-	case <-c:
-		// force stop clipboard.Write channel
-		return nil
-	}
 }
 
 func init() {
