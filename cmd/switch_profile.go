@@ -7,16 +7,16 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
 	"path"
-	"path/filepath"
 	"slices"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/go-ini/ini"
 	"github.com/spf13/cobra"
+	"golang.design/x/clipboard"
 )
 
 const awsCredentialsFile string = ".aws/credentials"
@@ -71,8 +71,12 @@ func selectProfile(cmd *cobra.Command, args []string) {
 		}
 	}
 	selectedProfile := strings.Split(answers.Profile, "/")[1]
-	log.Printf("export AWS_PROFILE=%s", selectedProfile)
-	setUpEnvConfig(selectedProfile)
+	exportCmd := fmt.Sprintf("export AWS_PROFILE=%s", selectedProfile)
+	err = copyToClipboard(exportCmd)
+	if err != nil {
+		log.Println("Somethin went wrong while copying to clipboard", err)
+	}
+	log.Println("Export command written to clipboard")
 }
 
 func retrieveProfiles() []AwsProfile {
@@ -109,26 +113,24 @@ func retrieveProfiles() []AwsProfile {
 	return profiles
 }
 
-func setUpEnvConfig(profile string) {
-	home, err := os.UserHomeDir()
+func copyToClipboard(content string) error {
+	err := clipboard.Init()
 	if err != nil {
-		log.Fatal(err)
-	}
-	configFile := filepath.Join(home, ".aws", "set_profile.sh")
-	file, err := os.OpenFile(configFile, os.O_CREATE|os.O_WRONLY, os.FileMode(int(0777)))
-	defer file.Close()
-	if err != nil {
-		log.Fatal(err)
-	}
-	_, err = file.WriteString(fmt.Sprintf("export AWS_PROFILE=%s", profile))
-	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
-	cmd := exec.Command("bash", "-c", "source "+configFile+"; env | grep -i aws")
-	_, err = cmd.Output()
-	if err != nil {
-		log.Fatal(err)
+	c := make(chan int)
+	go func(c chan int) {
+		time.Sleep(100 * time.Millisecond)
+		close(c)
+	}(c)
+
+	select {
+	case <-clipboard.Write(clipboard.FmtText, []byte(content)):
+		return fmt.Errorf("Clipboard was overwritten, value is lost")
+	case <-c:
+		// force stop clipboard.Write channel
+		return nil
 	}
 }
 
