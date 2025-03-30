@@ -15,7 +15,7 @@ type EcrService struct {
 func (s *EcrService) GetImageManifest(repository string, imageTag string) string {
 	image, err := s.GetImage(repository, imageTag)
 	if err != nil {
-		log.Fatalf("Failed to retrieve image %s:%s", repository, imageTag)
+		log.Fatalf("Failed to retrieve image '%s:%s': %v", repository, imageTag, err)
 	}
 	return *image.ImageManifest
 }

@@ -11,7 +11,7 @@ import (
 func GetAwsConfig() aws.Config {
 	conf, err := config.LoadDefaultConfig(context.Background())
 	if err != nil {
-		log.Fatalln("Failed to load config: %v", err)
+		log.Fatalf("Failed to load config: %v", err)
 	}
 	return conf
 }
