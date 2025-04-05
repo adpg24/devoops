@@ -32,7 +32,7 @@ func (p *AwsProfile) String() string {
 
 // awsProfileCmd represents the awsProfile command
 var awsProfileCmd = &cobra.Command{
-	Use:     "awsProfile",
+	Use:     "select-profile",
 	Short:   "Select an AWS profile",
 	Long:    "Select an AWS profile from you local credentials file.",
 	Aliases: []string{"sp"},
