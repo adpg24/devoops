@@ -1,4 +1,4 @@
-module github.com/adpg0222/devoops
+module github.com/adpg24/devoops
 
 go 1.22.2
 
