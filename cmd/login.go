@@ -122,23 +122,6 @@ func login(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 
-	_iam := iam.NewFromConfig(conf)
-
-	devices, err := _iam.ListMFADevices(context.TODO(), &iam.ListMFADevicesInput{})
-	if err != nil {
-		log.Fatalf("❌ An error occurred while listing MFA devices!\nError: %s\n", err.Error())
-	}
-
-	var mfaDevices []string
-
-	if len(devices.MFADevices) < 1 {
-		log.Fatalf("❌ No mfa devices have been configured for this user!")
-	}
-
-	for _, device := range devices.MFADevices {
-		mfaDevices = append(mfaDevices, *device.SerialNumber)
-	}
-
 	var qs = []*survey.Question{
 		{
 			Name:     "mfaCode",
@@ -150,6 +133,23 @@ func login(cmd *cobra.Command, args []string) {
 	var answers mfaSurveyAnswer
 
 	if mfaDevice == "" {
+		_iam := iam.NewFromConfig(conf)
+
+		devices, err := _iam.ListMFADevices(context.TODO(), &iam.ListMFADevicesInput{})
+		if err != nil {
+			log.Fatalf("❌ An error occurred while listing MFA devices!\nError: %s\n", err.Error())
+		}
+
+		var mfaDevices []string
+
+		if len(devices.MFADevices) < 1 {
+			log.Fatalf("❌ No mfa devices have been configured for this user!")
+		}
+
+		for _, device := range devices.MFADevices {
+			mfaDevices = append(mfaDevices, *device.SerialNumber)
+		}
+
 		q := &survey.Question{
 			Name: "mfaDevice",
 			Prompt: &survey.Select{
