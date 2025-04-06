@@ -88,7 +88,7 @@ func login(cmd *cobra.Command, args []string) {
 		requiredKeys := []string{keyAwsAccessKey, keyAwsSecretAccessKey}
 		for _, key := range requiredKeys {
 			if !longTermCreds.HasKey(key) {
-				log.Fatalf("❌ %s\n", err.Error())
+				log.Fatalf("❌ The profile %s does not have the key '%s'\n", longTermProfile, key)
 			}
 		}
 
@@ -213,5 +213,5 @@ func init() {
 	// rootCmd.PersistentFlags().StringVar(&awsCredPath, "config", path.Join(home, ".aws/credentials"), "AWS credentials file location")
 	loginCmd.Flags().StringVarP(&awsCredPath, "config", "c", path.Join(home, ".aws/credentials"), "AWS credentials file location")
 	// rootCmd.PersistentFlags().StringVar(&awsProfile, "profile", "default", "AWS Profile for which we need to request a MFA token")
-	loginCmd.Flags().StringVarP(&awsProfile, "profile", "p", "default", "AWS Profile for which we need to request a MFA token")
+	loginCmd.Flags().StringVarP(&awsProfile, "profile", "p", "default", "AWS profile for which you need to authenticate with MFA")
 }
