@@ -3,8 +3,10 @@ package util
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
+	"github.com/go-ini/ini"
 	"golang.design/x/clipboard"
 )
 
@@ -23,4 +25,30 @@ func CopyToClipboard(content string) error {
 	case <-ctx.Done():
 		return nil
 	}
+}
+
+func Insert[T any](array []T, element T, i int) []T {
+	return append(array[:i], append([]T{element}, array[i:]...)...)
+}
+
+func HandleErr(err error, msg string, args ...any) {
+	if err != nil {
+		log.Fatalf(msg, args...)
+	}
+}
+
+func AddProfileSection(saveTo string, iniFile *ini.File, sectionName string, keys map[string]string) error {
+	sec := iniFile.Section(sectionName)
+	for k, v := range keys {
+		_, err := sec.NewKey(k, v)
+		if err != nil {
+			return err
+		}
+	}
+
+	err := iniFile.SaveTo(saveTo)
+	if err != nil {
+		return err
+	}
+	return nil
 }
