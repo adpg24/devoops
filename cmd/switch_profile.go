@@ -7,14 +7,13 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
 	"path"
-	"path/filepath"
 	"slices"
 	"sort"
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/adpg24/devoops/util"
 	"github.com/go-ini/ini"
 	"github.com/spf13/cobra"
 )
@@ -32,7 +31,7 @@ func (p *AwsProfile) String() string {
 
 // awsProfileCmd represents the awsProfile command
 var awsProfileCmd = &cobra.Command{
-	Use:     "select-profile",
+	Use:     "awsProfile",
 	Short:   "Select an AWS profile",
 	Long:    "Select an AWS profile from you local credentials file.",
 	Aliases: []string{"sp"},
@@ -71,8 +70,12 @@ func selectProfile(cmd *cobra.Command, args []string) {
 		}
 	}
 	selectedProfile := strings.Split(answers.Profile, "/")[1]
-	log.Printf("export AWS_PROFILE=%s", selectedProfile)
-	setUpEnvConfig(selectedProfile)
+	exportCmd := fmt.Sprintf("export AWS_PROFILE=%s", selectedProfile)
+	err = util.CopyToClipboard(exportCmd)
+	if err != nil {
+		log.Fatalln("Something went wrong while copying to clipboard:", err)
+	}
+	log.Println("Export command written to clipboard")
 }
 
 func retrieveProfiles() []AwsProfile {
@@ -107,29 +110,6 @@ func retrieveProfiles() []AwsProfile {
 		profiles = append(profiles, AwsProfile{Name: section.Name(), Account: accountId})
 	}
 	return profiles
-}
-
-func setUpEnvConfig(profile string) {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		log.Fatal(err)
-	}
-	configFile := filepath.Join(home, ".aws", "set_profile.sh")
-	file, err := os.OpenFile(configFile, os.O_CREATE|os.O_WRONLY, os.FileMode(int(0777)))
-	defer file.Close()
-	if err != nil {
-		log.Fatal(err)
-	}
-	_, err = file.WriteString(fmt.Sprintf("export AWS_PROFILE=%s", profile))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	cmd := exec.Command("bash", "-c", "source "+configFile+"; env | grep -i aws")
-	_, err = cmd.Output()
-	if err != nil {
-		log.Fatal(err)
-	}
 }
 
 func init() {

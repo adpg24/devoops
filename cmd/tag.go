@@ -5,53 +5,44 @@ package cmd
 
 import (
 	"log"
-	"strings"
 
 	"github.com/adpg24/devoops/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ecr"
 	"github.com/spf13/cobra"
 )
 
+var repository string
+
 // tagCmd represents the tag command
 var tagCmd = &cobra.Command{
-	Use:   "tag",
+	Use:   "tag [sourceTag] [newTag]",
 	Short: "Retag an AWS ECR image",
-	Long: `Retag an AWS ECR image - No downloads necessary!
-	devoops tag IMAGE_REPOSITORY_NAME:TAG -> IMAGE_REPOSITORY_NAME:NEW_TAG`,
-	Run: run,
+	Long:  `Retag an AWS ECR image - No downloads necessary!`,
+	Run:   run,
+	Args:  cobra.MinimumNArgs(2),
 }
 
 func run(cmd *cobra.Command, args []string) {
-	if len(args) < 2 {
-		log.Fatalln("Please provide 2 arguments: source and target; repository must be the same")
-	}
-
-	if !strings.Contains(args[0], ":") || !strings.Contains(args[1], ":") {
-		log.Fatalln("The arguments are incorrect; format: REPOSITORY:TAG")
-	}
-
 	cfg, err := aws.GetAwsConfig(&aws.AwsConfig{})
 	if err != nil {
 		log.Fatalf("Failed to load AWS config: %v", err)
 	}
+
 	client := ecr.NewFromConfig(*cfg)
-	ecr := aws.EcrService{Client: client}
-
-	source := strings.Split(string(args[0]), ":")
-	target := strings.Split(string(args[1]), ":")
-
-	if source[0] != target[0] {
-		log.Fatalln("The source and target repository are not the same")
-	}
-
-	imageManifest := ecr.GetImageManifest(source[0], source[1])
-	_, err = ecr.PutImage(target[0], target[1], imageManifest)
+	_ecr := aws.EcrService{Client: client}
+	imageManifest, err := _ecr.GetImageManifest(repository, args[0])
 	if err != nil {
-		log.Fatalf("Failed to retag %s -> %s", args[0], args[1])
+		log.Fatalf("Failed to retrieve image manifest for %s:%s", repository, args[0])
 	}
-	log.Printf("Tag created %s", args[1])
+
+	_, err = _ecr.PutImage(repository, args[1], imageManifest)
+	if err != nil {
+		log.Fatalf("Failed to retag %s:%s -> %s:%s", repository, args[0], repository, args[1])
+	}
+	log.Printf("Tag created %s:%s", repository, args[1])
 }
 
 func init() {
 	rootCmd.AddCommand(tagCmd)
+	tagCmd.PersistentFlags().StringVarP(&repository, "repository", "r", "", "The ECR repository name")
 }

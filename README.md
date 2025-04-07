@@ -1,8 +1,6 @@
 # devoops
 CLI tool with multiple useful commands to work with Kubernetes(EKS) and AWS.
 
-# Install from git repo
-
 ## Install
 
 ### Linux
@@ -72,9 +70,10 @@ devoops sp
 
 ## Development
 
-Fork the projects
+[Download and install GO](https://go.dev/doc/install)
 
 ### Add GO executables to your PATH
+
 ```bash
 # Discover the install path with
 go list -f '{{.Target}}'
@@ -90,6 +89,3 @@ go build -o /path/to/your/install/dir/devoops
 
 ### Cobra CLI
 This project uses [Cobra CLI](https://github.com/spf13/cobra) for the interface.
-```bash
-cobra-cli -h
-```

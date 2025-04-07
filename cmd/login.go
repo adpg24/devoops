@@ -14,7 +14,6 @@ import (
 	"github.com/adpg24/devoops/aws"
 	"github.com/spf13/cobra"
 
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 
