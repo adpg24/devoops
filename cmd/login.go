@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/adpg24/devoops/aws"
+	"github.com/adpg24/devoops/util"
 	"github.com/spf13/cobra"
 
 	"github.com/aws/aws-sdk-go-v2/service/iam"
@@ -24,15 +25,6 @@ import (
 type mfaSurveyAnswer = struct {
 	MfaDevice string `survey:"mfaDevice"`
 	MfaCode   string `survey:"mfaCode"`
-}
-
-type awsConfig = struct {
-	AwsAccessKey       string
-	AwsSecretAccessKey string
-	Region             string
-	AwsSessionToken    string
-	MfaDevice          string
-	Expiration         string
 }
 
 var (
@@ -59,10 +51,6 @@ var loginCmd = &cobra.Command{
 	PreRun:  checkFlags,
 }
 
-func insert[T any](array []T, element T, i int) []T {
-	return append(array[:i], append([]T{element}, array[i:]...)...)
-}
-
 func checkFlags(cmd *cobra.Command, args []string) {
 	if awsProfile == "default" {
 		if awsProfileEnv := os.Getenv("AWS_PROFILE"); awsProfileEnv != "" {
@@ -74,16 +62,14 @@ func checkFlags(cmd *cobra.Command, args []string) {
 func login(cmd *cobra.Command, args []string) {
 	// load INI files (~/.aws/credentials)
 	credFile, err := ini.Load(awsCredPath)
-	if err != nil {
-		log.Fatalf("❌ Failed to load AWS config file %s", awsCredPath)
-	}
+	util.HandleErr(err, "❌ Failed to load AWS config file %s", awsCredPath)
 
 	shortTermProfile = awsProfile
 	longTermProfile = fmt.Sprintf("%s%s", awsProfile, longTermSuffix)
 
 	// validate long term profile = [profile]-mfa
 	if longTermCreds, err := credFile.GetSection(longTermProfile); err != nil {
-		log.Fatalf("❌ AWS Profile not available! Please suffix the profile you want to use with \"-mfa\". e.g. [default] -> [default-mfa]\n")
+		log.Fatalf("❌ AWS Profile not available! Please create a long-term profile with the suffix \"-mfa\". e.g. [default] -> [default-mfa]\n")
 	} else {
 		requiredKeys := []string{keyAwsAccessKey, keyAwsSecretAccessKey}
 		for _, key := range requiredKeys {
@@ -114,9 +100,7 @@ func login(cmd *cobra.Command, args []string) {
 	}
 
 	conf, err := aws.GetAwsConfig(&aws.AwsConfig{Region: region, Profile: longTermProfile})
-	if err != nil {
-		log.Fatal(err)
-	}
+	util.HandleErr(err, "Failed to retrieve config: %v", err)
 
 	var qs = []*survey.Question{
 		{
@@ -132,9 +116,7 @@ func login(cmd *cobra.Command, args []string) {
 		_iam := iam.NewFromConfig(*conf)
 
 		devices, err := _iam.ListMFADevices(context.TODO(), &iam.ListMFADevicesInput{})
-		if err != nil {
-			log.Fatalf("❌ An error occurred while listing MFA devices!\nError: %s\n", err.Error())
-		}
+		util.HandleErr(err, "❌ An error occurred while listing MFA devices: %v", err)
 
 		var mfaDevices []string
 
@@ -175,20 +157,19 @@ func login(cmd *cobra.Command, args []string) {
 		TokenCode:    &answers.MfaCode,
 		SerialNumber: &answers.MfaDevice,
 	})
-	if err != nil {
-		log.Fatalf("❌ An error occurred while retrieving session token for %s!\nError: %s\n", answers.MfaDevice, err.Error())
-		return
-	}
+	util.HandleErr(err, "❌ An error occurred while retrieving the session token for %s!: %v", longTermProfile, err)
 
 	// func Section will create the profile (INI section) if it does not exist
-	sec := credFile.Section(shortTermProfile)
+	sectionKeys := map[string]string{
+		"aws_access_key_id":     *session.Credentials.AccessKeyId,
+		"aws_secret_access_key": *session.Credentials.SecretAccessKey,
+		"aws_session_token":     *session.Credentials.SessionToken,
+		"expiration":            session.Credentials.Expiration.Format("2006-01-02 15:04:05"),
+	}
+	err = util.AddProfileSection(awsCredPath, credFile, shortTermProfile, sectionKeys)
+	util.HandleErr(err, "Failed to add new profile/section to %s: %v", awsCredPath, err)
 
-	sec.NewKey("aws_access_key_id", *session.Credentials.AccessKeyId)
-	sec.NewKey("aws_secret_access_key", *session.Credentials.SecretAccessKey)
-	sec.NewKey("aws_session_token", *session.Credentials.SessionToken)
-	sec.NewKey("expiration", session.Credentials.Expiration.Format("2006-01-02 15:04:05"))
-
-	credFile.SaveTo(awsCredPath)
+	log.Printf("The short-term credentials were successfully created for profile %s", shortTermProfile)
 }
 
 func SetVersionInfo(version, commit, date string) {
@@ -202,12 +183,8 @@ func init() {
 	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
 
 	home, err := os.UserHomeDir()
-	if err != nil {
-		log.Fatal(err)
-	}
+	util.HandleErr(err, "Failed to retrieve use home dir: %v", err)
 
-	// rootCmd.PersistentFlags().StringVar(&awsCredPath, "config", path.Join(home, ".aws/credentials"), "AWS credentials file location")
 	loginCmd.Flags().StringVarP(&awsCredPath, "config", "c", path.Join(home, ".aws/credentials"), "AWS credentials file location")
-	// rootCmd.PersistentFlags().StringVar(&awsProfile, "profile", "default", "AWS Profile for which we need to request a MFA token")
 	loginCmd.Flags().StringVarP(&awsProfile, "profile", "p", "default", "AWS profile for which you need to authenticate with MFA")
 }
