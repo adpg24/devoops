@@ -30,7 +30,11 @@ func run(cmd *cobra.Command, args []string) {
 		log.Fatalln("The arguments are incorrect; format: REPOSITORY:TAG")
 	}
 
-	client := ecr.NewFromConfig(aws.GetAwsConfig())
+	cfg, err := aws.GetAwsConfig(&aws.AwsConfig{})
+	if err != nil {
+		log.Fatalf("Failed to load AWS config: %v", err)
+	}
+	client := ecr.NewFromConfig(*cfg)
 	ecr := aws.EcrService{Client: client}
 
 	source := strings.Split(string(args[0]), ":")
@@ -41,7 +45,7 @@ func run(cmd *cobra.Command, args []string) {
 	}
 
 	imageManifest := ecr.GetImageManifest(source[0], source[1])
-	_, err := ecr.PutImage(target[0], target[1], imageManifest)
+	_, err = ecr.PutImage(target[0], target[1], imageManifest)
 	if err != nil {
 		log.Fatalf("Failed to retag %s -> %s", args[0], args[1])
 	}

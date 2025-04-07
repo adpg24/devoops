@@ -11,6 +11,7 @@ import (
 	"path"
 	"time"
 
+	"github.com/adpg24/devoops/aws"
 	"github.com/spf13/cobra"
 
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -113,11 +114,7 @@ func login(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	conf, err := config.LoadDefaultConfig(
-		context.TODO(),
-		config.WithRegion(region),
-		config.WithSharedConfigProfile(longTermProfile),
-	)
+	conf, err := aws.GetAwsConfig(&aws.AwsConfig{Region: region, Profile: longTermProfile})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -133,7 +130,7 @@ func login(cmd *cobra.Command, args []string) {
 	var answers mfaSurveyAnswer
 
 	if mfaDevice == "" {
-		_iam := iam.NewFromConfig(conf)
+		_iam := iam.NewFromConfig(*conf)
 
 		devices, err := _iam.ListMFADevices(context.TODO(), &iam.ListMFADevicesInput{})
 		if err != nil {
@@ -174,7 +171,7 @@ func login(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	_sts := sts.NewFromConfig(conf)
+	_sts := sts.NewFromConfig(*conf)
 	session, err := _sts.GetSessionToken(context.TODO(), &sts.GetSessionTokenInput{
 		TokenCode:    &answers.MfaCode,
 		SerialNumber: &answers.MfaDevice,

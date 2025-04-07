@@ -2,16 +2,30 @@ package aws
 
 import (
 	"context"
-	"log"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 )
 
-func GetAwsConfig() aws.Config {
-	conf, err := config.LoadDefaultConfig(context.Background())
-	if err != nil {
-		log.Fatalln("Failed to load config: %v", err)
+type AwsConfig struct {
+	Region  string
+	Profile string
+}
+
+func GetAwsConfig(awsConfig *AwsConfig) (*aws.Config, error) {
+	var optFns []func(*config.LoadOptions) error
+	if awsConfig.Profile != "" {
+		optFns = append(optFns, config.WithSharedConfigProfile(awsConfig.Profile))
 	}
-	return conf
+
+	if awsConfig.Region != "" {
+		optFns = append(optFns, config.WithRegion(awsConfig.Region))
+	}
+
+	conf, err := config.LoadDefaultConfig(context.TODO(), optFns...)
+	if err != nil {
+		return nil, err
+	}
+
+	return &conf, nil
 }
