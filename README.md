@@ -60,11 +60,11 @@ You must have selected the profile you want to use prior to using this command, 
 devoops tag -r my-repository tag newTag
 ```
 
-##### select-profile
+##### switch-profile
 
 Select a profile from the profiles defined in `~/.aws/credentials`. The export command (linux) will be copied to your clipboard.
 ```bash
-devoops select-profile
+devoops switch-profile
 devoops sp
 ```
 
