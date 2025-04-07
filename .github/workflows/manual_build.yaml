@@ -1,0 +1,32 @@
+name: Manual release Go project
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: GoReleaser build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # See: https://goreleaser.com/ci/actions/
+
+      - name: Install xclip deps
+        run: apt-get install xorg openbox
+
+      - name: Set up Go 1.24
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.24
+        id: go
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@master
+        with:
+          version: latest
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GO_RELEASER_GITHUB_TOKEN }}
