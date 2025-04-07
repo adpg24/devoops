@@ -5,7 +5,7 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/adpg0222/devoops/kube"
+	"github.com/adpg24/devoops/kube"
 
 	"github.com/spf13/cobra"
 )

@@ -1,4 +1,4 @@
-module github.com/adpg0222/devoops
+module github.com/adpg24/devoops
 
 go 1.22.2
 
@@ -12,6 +12,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sts v1.28.6
 	github.com/go-ini/ini v1.67.0
 	github.com/spf13/cobra v1.8.0
+	golang.design/x/clipboard v0.7.0
 	k8s.io/client-go v0.30.0
 )
 
@@ -51,6 +52,9 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
+	golang.org/x/exp v0.0.0-20190731235908-ec7cb31e5a56 // indirect
+	golang.org/x/image v0.6.0 // indirect
+	golang.org/x/mobile v0.0.0-20230301163155-e0f57694e12c // indirect
 	golang.org/x/net v0.23.0 // indirect
 	golang.org/x/oauth2 v0.10.0 // indirect
 	golang.org/x/sys v0.18.0 // indirect

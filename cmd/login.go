@@ -11,9 +11,9 @@ import (
 	"path"
 	"time"
 
+	"github.com/adpg24/devoops/aws"
 	"github.com/spf13/cobra"
 
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 
@@ -88,7 +88,7 @@ func login(cmd *cobra.Command, args []string) {
 		requiredKeys := []string{keyAwsAccessKey, keyAwsSecretAccessKey}
 		for _, key := range requiredKeys {
 			if !longTermCreds.HasKey(key) {
-				log.Fatalf("❌ %s\n", err.Error())
+				log.Fatalf("❌ The profile %s does not have the key '%s'\n", longTermProfile, key)
 			}
 		}
 
@@ -113,30 +113,9 @@ func login(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	conf, err := config.LoadDefaultConfig(
-		context.TODO(),
-		config.WithRegion(region),
-		config.WithSharedConfigProfile(longTermProfile),
-	)
+	conf, err := aws.GetAwsConfig(&aws.AwsConfig{Region: region, Profile: longTermProfile})
 	if err != nil {
 		log.Fatal(err)
-	}
-
-	_iam := iam.NewFromConfig(conf)
-
-	devices, err := _iam.ListMFADevices(context.TODO(), &iam.ListMFADevicesInput{})
-	if err != nil {
-		log.Fatalf("❌ An error occurred while listing MFA devices!\nError: %s\n", err.Error())
-	}
-
-	var mfaDevices []string
-
-	if len(devices.MFADevices) < 1 {
-		log.Fatalf("❌ No mfa devices have been configured for this user!")
-	}
-
-	for _, device := range devices.MFADevices {
-		mfaDevices = append(mfaDevices, *device.SerialNumber)
 	}
 
 	var qs = []*survey.Question{
@@ -150,6 +129,23 @@ func login(cmd *cobra.Command, args []string) {
 	var answers mfaSurveyAnswer
 
 	if mfaDevice == "" {
+		_iam := iam.NewFromConfig(*conf)
+
+		devices, err := _iam.ListMFADevices(context.TODO(), &iam.ListMFADevicesInput{})
+		if err != nil {
+			log.Fatalf("❌ An error occurred while listing MFA devices!\nError: %s\n", err.Error())
+		}
+
+		var mfaDevices []string
+
+		if len(devices.MFADevices) < 1 {
+			log.Fatalf("❌ No mfa devices have been configured for this user!")
+		}
+
+		for _, device := range devices.MFADevices {
+			mfaDevices = append(mfaDevices, *device.SerialNumber)
+		}
+
 		q := &survey.Question{
 			Name: "mfaDevice",
 			Prompt: &survey.Select{
@@ -174,7 +170,7 @@ func login(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	_sts := sts.NewFromConfig(conf)
+	_sts := sts.NewFromConfig(*conf)
 	session, err := _sts.GetSessionToken(context.TODO(), &sts.GetSessionTokenInput{
 		TokenCode:    &answers.MfaCode,
 		SerialNumber: &answers.MfaDevice,
@@ -213,5 +209,5 @@ func init() {
 	// rootCmd.PersistentFlags().StringVar(&awsCredPath, "config", path.Join(home, ".aws/credentials"), "AWS credentials file location")
 	loginCmd.Flags().StringVarP(&awsCredPath, "config", "c", path.Join(home, ".aws/credentials"), "AWS credentials file location")
 	// rootCmd.PersistentFlags().StringVar(&awsProfile, "profile", "default", "AWS Profile for which we need to request a MFA token")
-	loginCmd.Flags().StringVarP(&awsProfile, "profile", "p", "default", "AWS Profile for which we need to request a MFA token")
+	loginCmd.Flags().StringVarP(&awsProfile, "profile", "p", "default", "AWS profile for which you need to authenticate with MFA")
 }

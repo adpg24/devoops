@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"log"
 
 	"github.com/aws/aws-sdk-go-v2/service/ecr"
 	"github.com/aws/aws-sdk-go-v2/service/ecr/types"
@@ -12,12 +11,12 @@ type EcrService struct {
 	Client *ecr.Client
 }
 
-func (s *EcrService) GetImageManifest(repository string, imageTag string) string {
+func (s *EcrService) GetImageManifest(repository string, imageTag string) (string, error) {
 	image, err := s.GetImage(repository, imageTag)
 	if err != nil {
-		log.Fatalf("Failed to retrieve image %s:%s", repository, imageTag)
+		return "", err
 	}
-	return *image.ImageManifest
+	return *image.ImageManifest, nil
 }
 
 func (s *EcrService) GetImage(repository string, imageTag string) (*types.Image, error) {
@@ -35,6 +34,5 @@ func (s *EcrService) PutImage(repository string, imageTag string, imageManifest 
 	if err != nil {
 		return nil, err
 	}
-	log.Println()
 	return output.Image, nil
 }
