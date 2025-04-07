@@ -32,7 +32,7 @@ func run(cmd *cobra.Command, args []string) {
 	_ecr := aws.EcrService{Client: client}
 	imageManifest, err := _ecr.GetImageManifest(repository, args[0])
 	if err != nil {
-		log.Fatalf("Failed to retrieve image manifest for %s:%s", repository, args[0])
+		log.Fatalf("Failed to retrieve image manifest for '%s:%s': %v", repository, args[0], err)
 	}
 
 	_, err = _ecr.PutImage(repository, args[1], imageManifest)
