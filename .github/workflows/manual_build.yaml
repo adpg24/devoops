@@ -15,7 +15,7 @@ jobs:
           fetch-depth: 0 # See: https://goreleaser.com/ci/actions/
 
       - name: Install xclip deps
-        run: apt-get install xorg openbox
+        run: sudo apt-get install xorg openbox
 
       - name: Set up Go 1.24
         uses: actions/setup-go@v2
