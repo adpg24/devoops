@@ -4,10 +4,17 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
+	"path"
 	"time"
 
 	"github.com/go-ini/ini"
 	"golang.design/x/clipboard"
+)
+
+const (
+	awsConfigDir  = ".aws"
+	awsConfigFile = "credentials"
 )
 
 func CopyToClipboard(content string) error {
@@ -51,4 +58,10 @@ func AddProfileSection(saveTo string, iniFile *ini.File, sectionName string, key
 		return err
 	}
 	return nil
+}
+
+func GetAwsConfigDir() string {
+	home, err := os.UserHomeDir()
+	HandleErr(err, "Failed to retrieve home dir: %v", err)
+	return path.Join(home, awsConfigDir, awsConfigFile)
 }
